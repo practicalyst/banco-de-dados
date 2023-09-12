@@ -1,0 +1,55 @@
+1) Projetar o primeiro nome e o último nome dos atores de sexo feminino;
+
+SELECT first_name, last_name
+FROM actors
+WHERE gender = 'F';
+
+2) Projetar o nome dos filmes com ano superior à 1999;
+
+SELECT name
+FROM movies
+WHERE year > 1999;
+
+3) Projetar o nome do filme e o nome do diretor de cada filme;
+
+SELECT name, first_name, last_name
+FROM movies, directors, movies_directors
+WHERE directors.id = director_id;
+
+4) Projetar o nome do filme, nome do ator e o papel que cada ator teve no filme para filmes com ranking acima da nota 6;
+
+SELECT m.name AS movie_name, a.first_name, a.last_name, r.role
+FROM actors AS a
+JOIN roles AS r ON r.actor_id = a.id
+JOIN movies AS m ON r.movie_id = m.id
+WHERE m.rank > 6;
+
+5) Projetar o nome do diretor e o número de filmes que cada diretor dirigiu;
+
+SELECT first_name, COUNT(movie_id) AS qtdProduzidos
+FROM directors
+JOIN movies_directors ON id = director_id
+GROUP BY first_name;
+
+
+6) Projetar o gênero e o número de filmes de cada gênero;
+
+SELECT genre, COUNT(genre) AS generos
+FROM movies_genres AS mg
+JOIN movies AS m ON m.id = mg.movie_id
+GROUP BY genre
+
+ou 
+
+SELECT genre, COUNT(genre) AS generos
+FROM movies_genres, movies
+WHERE id = movie_id
+GROUP BY genre	
+
+7) Projetar o gênero, o ranking (nota) médio, mínimo e máximo dos filmes do gênero.
+
+SELECT genre, AVG(m.rank) AS media, MIN(m.rank) AS minimo, MAX(m.rank) AS maximo
+FROM movies_genres AS mg
+JOIN movies AS m ON m.id = mg.movie_id
+GROUP BY genre;
+
