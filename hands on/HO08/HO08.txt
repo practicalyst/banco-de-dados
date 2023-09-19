@@ -1,0 +1,54 @@
+1) Projetar o primeiro nome e o último nome dos atores que são diretores;
+
+SELECT A.first_name, A.last_name
+FROM actors as A
+INNER JOIN directors AS D ON A.first_name = D.first_name 
+INNER JOIN movies_directors AS MD ON D.id = MD.director_id;
+
+2) Projetar o primeiro nome e o último nome dos atores que não são diretores;
+
+/* Gambiarra */
+
+SELECT A.first_name, A.last_name
+FROM actors as A, directors AS D
+INNER JOIN movies_directors AS MD ON D.id != MD.director_id and A.first_name != D.first_name;
+
+3) Projetar o primeiro nome e o último nome dos atores e diretores;
+
+SELECT first_name, last_name
+FROM actors
+UNION
+SELECT first_name, last_name
+FROM directors;
+
+4) Projetar o nome dos filmes que não são dirigidos por nenhum diretor;
+
+SELECT M.name
+FROM movies AS M
+INNER JOIN movies_directors AS MD ON M.id = MD.movie_id
+WHERE MD.director_id IS NULL;
+
+5) Projetar primeiro nome e o último nome dos atores que não atuaram em pelo menos dois filmes;
+
+SELECT A.first_name, A.last_name
+FROM actors AS A
+LEFT JOIN roles AS R ON R.actor_id = A.id
+GROUP BY R.actor_id
+HAVING COUNT(A.id) < 2;
+
+
+6) Projetar, por gênero e ano, o número médio de filmes com menos de dois atores atuando.
+
+/* Voltar */
+
+SELECT m.genre, m.year, AVG(numero_filmes) AS media_filmes
+FROM (
+    SELECT mg.genre, mv.year, COUNT(*) AS numero_filmes
+    FROM movies AS mv
+    JOIN movies_genres AS mg ON mv.id = mg.movie_id
+    LEFT JOIN roles AS r ON mv.id = r.movie_id
+    GROUP BY mg.genre, mv.year, mv.id
+    HAVING COUNT(r.actor_id) < 2
+) AS m
+GROUP BY m.genre, m.year;
+
