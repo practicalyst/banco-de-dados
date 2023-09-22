@@ -2,16 +2,24 @@
 
 SELECT A.first_name, A.last_name
 FROM actors as A
-INNER JOIN directors AS D ON A.first_name = D.first_name 
-INNER JOIN movies_directors AS MD ON D.id = MD.director_id;
+INNER JOIN directors AS D ON (A.first_name = D.first_name AND A.first_name = D.last_name)
+
+
+SELECT actors.first_name, actors.last_name
+FROM actors
+INTERSECT
+SELECT directors.first_name, directors.last_name
+FROM directors
+
 
 2) Projetar o primeiro nome e o último nome dos atores que não são diretores;
 
-/* Gambiarra */
+SELECT actors.first_name, actors.last_name
+FROM actors
+INTERSECT
+SELECT directors.first_name, directors.last_name
+FROM directors
 
-SELECT A.first_name, A.last_name
-FROM actors as A, directors AS D
-INNER JOIN movies_directors AS MD ON D.id != MD.director_id and A.first_name != D.first_name;
 
 3) Projetar o primeiro nome e o último nome dos atores e diretores;
 
@@ -23,32 +31,44 @@ FROM directors;
 
 4) Projetar o nome dos filmes que não são dirigidos por nenhum diretor;
 
-SELECT M.name
-FROM movies AS M
-INNER JOIN movies_directors AS MD ON M.id = MD.movie_id
-WHERE MD.director_id IS NULL;
+SELECT movies.name
+FROM movies
+INNER JOIN (SELECT movie.id 
+		FROM movies
+		EXCEPT
+		SELECT movies_directors.movies_id
+		FROM movies_directors) as B ON movies.id = B.id
 
 5) Projetar primeiro nome e o último nome dos atores que não atuaram em pelo menos dois filmes;
 
-SELECT A.first_name, A.last_name
-FROM actors AS A
-LEFT JOIN roles AS R ON R.actor_id = A.id
-GROUP BY R.actor_id
-HAVING COUNT(A.id) < 2;
-
+SELECT actors.first_name, actors.last_name
+FROM actors
+INNER JOIN
+(SELECT actors.id
+FROM actors
+EXCEPT
+SELECT A.actor_id 
+FROM ( SELECT roles.actor_id, COUNT(*) as TOTAL
+	FROM roles
+	GROUP BY roles.actor_id
+	HAVING TOTAL > 1) as A) as B on actors.id = B.id
 
 6) Projetar, por gênero e ano, o número médio de filmes com menos de dois atores atuando.
 
-/* Voltar */
+SELECT movies_genres.genre, movies.year, COUNT(*) as TOTAL
+FROM movies_genres
+	INNER JOIN movies ON movies_genres.movie_id = movies.id
+	INNER JOIN
+	( SELECT movies.id
+	  FROM movies
+	  EXCEPT
+	  SELECT A.movie_id
+	  FROM ( SELECT roles.movie_id, COUNT(*) as TOTAL
+                 FROM roles
+                 GROUP BY roles.movie_id
+                 HAVING TOTAL > 1) as A
+          ) as B ON movies.id = B.id
+GROUP BY movies_genres.genre, movies.year
 
-SELECT m.genre, m.year, AVG(numero_filmes) AS media_filmes
-FROM (
-    SELECT mg.genre, mv.year, COUNT(*) AS numero_filmes
-    FROM movies AS mv
-    JOIN movies_genres AS mg ON mv.id = mg.movie_id
-    LEFT JOIN roles AS r ON mv.id = r.movie_id
-    GROUP BY mg.genre, mv.year, mv.id
-    HAVING COUNT(r.actor_id) < 2
-) AS m
-GROUP BY m.genre, m.year;
+
 
