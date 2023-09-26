@@ -8,22 +8,26 @@
 
 3) Projetar o nome do filme e o nome do diretor de cada filme;
 
-π name, first_name, last_name σ movies_directors.director_id = directors.id (π name,director_id σ id=movie_id (movies ⨝ movies_directors) ⨝ directors)
+π name, first_name, last_name (movies ⨝ id = movie_id (directors ⨝ id = director_id movies_directors))
 
 4) Projetar o nome do filme, nome do ator e o papel que cada ator teve no filme para filmes com ranking acima da nota 6;
 
-π name, first_name, last_name, role (σ id = actor_id (π name, actor_id, role ((σ rank > 6 movies) ⨝ roles) ⨝ actors))
+A = σ rank > 6 movies
+B = roles ⨝ movie_id = id A
+C = actors ⨝ id = actor_id B
+
+π name, first_name, last_name, role C
 
 5) Projetar o nome do diretor e o número de filmes que cada diretor dirigiu;
 
-π first_name, last_name, somados ((γ director_id; count(movie_id) -> somados (movies_directors)) ⨝ directors)
-
+A = γ director_id; count(*) -> somados movies_directors
+π first_name, last_name, somados ( A ⨝ directors.id = movies_directors.director_id directors)
 
 6) Projetar o gênero e o número de filmes de cada gênero; 
 
-γ genre; count(movie_id) -> qtd_genero (movies_genres)
+γ genre; count(*) -> generos movies_genres
 
 7) Projetar o gênero, o ranking (nota) médio, mínimo e máximo dos filmes do gênero.
 
-γ genre; avg(movies.rank) -> notaGenero(π movie_id ,rank, genre (movies ⟕ movies_genres)) ⨝ γ genre; min(movies.rank) -> notaMinimo(π movie_id ,rank, genre (movies ⟕ movies_genres)) ⨝ γ genre; max(movies.rank) -> notaMaximo(π movie_id ,rank, genre (movies ⟕ movies_genres))
-
+A = movies ⨝ id = movie_id movies_genres
+γ genre; avg(rank) -> media, min(rank) -> minima, max(rank) -> maximo A
